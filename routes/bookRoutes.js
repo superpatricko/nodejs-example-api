@@ -2,51 +2,25 @@ var express = require('express');
 
 var routes = function(Book) {
 	var bookRouter = express.Router();
+	var bookController = require('../controllers/bookController')(Book);
 
 	bookRouter.route('/')
-		.post(function(req, res) {
-			var book = new Book(req.body);
-			book.save(); // this will save the book to our database
-			res.status(201).send(book); // 201 means created
-		})
-		.get(function(req, res) {
-			var query = {};
-			res.send('derp');
+		.post(bookController.post)
+		.get(bookController.get);
+	
 
-			// Sanitize
-			if(req.query.genre) {
-				query.genre = req.query.genre;
+	bookRouter.use('/:bookId', function(req,res,next) {
+		Book.findById(req.params.bookId, function(err, book) {
+			if(err)
+				res.status(500).send(err);
+			else if(book) {
+				req.book = book;
+				next();
+			} else {
+				res.status(404).send('no book found');
 			}
-			Book.find(query, function(err, books) {
-				if(err)
-					console.log(err);
-				else
-					res.json(books);
-			});
 		});
-
-	bookRouter.route('/:bookId')
-		.get(function(req, res){
-			Book.findById(req.params.bookId, function(err, book) {
-				if(err)
-					console.log(err);
-				else
-					res.json(book);
-			});
-		})
-		.put(function(req, res) {
-			Book.findById(req.params.bookId, function(err, book) {
-				if(err)
-					console.log(err);
-				else
-					book.title = req.body.title;
-					book.author = req.body.author;
-					book.genre = req.body.genre;
-					book.read = req.body.read;
-					res.json(book);
-			});
-
-		});
+	});
 
 	return bookRouter;
 };
