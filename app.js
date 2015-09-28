@@ -14,8 +14,8 @@ var bookRouter = express.Router();
 bookRouter.route('/Books')
 	.post(function(req, res) {
 		var book = new Book(req.body);
-		console.log(book);
-		res.send(book);
+		book.save(); // this will save the book to our database
+		res.status(201).send(book); // 201 means created
 	})
 	.get(function(req, res) {
 		var query = {};
